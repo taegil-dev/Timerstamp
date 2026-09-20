@@ -1,0 +1,1 @@
+let e=require("electron");e.contextBridge.exposeInMainWorld(`desktop`,{getSettings:()=>e.ipcRenderer.invoke(`settings:get`),saveSettings:t=>e.ipcRenderer.invoke(`settings:set`,t),notify:(t,n)=>e.ipcRenderer.invoke(`notification:show`,t,n),timerCompleted:()=>{e.ipcRenderer.send(`timer-completed`)}});

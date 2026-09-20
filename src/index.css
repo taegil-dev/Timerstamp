@@ -1,0 +1,1310 @@
+/* =========================================================
+   Base
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Noto Sans KR", sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   App / Theme
+   ========================================================= */
+
+.app {
+  --bg: #111318;
+  --panel: #191c23;
+  --panel-hover: #222630;
+  --text: #edf0f6;
+  --muted: #8c94a5;
+  --border: #2b303b;
+  --accent: #8b7cff;
+
+  display: flex;
+
+  width: 100%;
+  height: 100vh;
+  min-height: 100vh;
+
+  overflow: hidden;
+
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app.light {
+  --bg: #f5f6fa;
+  --panel: #ffffff;
+  --panel-hover: #eff0f7;
+  --text: #202331;
+  --muted: #777f90;
+  --border: #e2e5ed;
+  --accent: #6b5ce7;
+}
+
+
+/* =========================================================
+   Scrollbar
+   ========================================================= */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3f4b transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #343944;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a5060;
+}
+
+.app.light * {
+  scrollbar-color: #c9ccd5 transparent;
+}
+
+.app.light ::-webkit-scrollbar-thumb {
+  background: #c9ccd5;
+}
+
+.app.light ::-webkit-scrollbar-thumb:hover {
+  background: #adb1bc;
+}
+
+
+/* =========================================================
+   Sidebar
+   ========================================================= */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 210px;
+  height: 100vh;
+
+  flex-shrink: 0;
+
+  padding: 20px 12px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  overflow-y: auto;
+
+  border-right: 1px solid var(--border);
+
+  background: var(--bg);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 0 10px 20px;
+
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.brand svg {
+  color: var(--accent);
+}
+
+.nav {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+  color: var(--muted);
+
+  text-align: left;
+
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.nav:hover,
+.nav.active {
+  background: var(--panel-hover);
+  color: var(--text);
+}
+
+.nav.active {
+  box-shadow: inset 3px 0 var(--accent);
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+}
+
+.sidebar-volume {
+  margin-top: auto;
+  padding: 12px 10px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  background: var(--panel);
+}
+
+.sidebar-volume-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 10px;
+
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.sidebar-volume-header svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.sidebar-volume-header span {
+  flex: 1;
+}
+
+.sidebar-volume-header strong {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sidebar-volume input[type="range"] {
+  width: 100%;
+  height: 4px;
+
+  margin: 0;
+
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   Main Content
+   ========================================================= */
+
+.content {
+  width: calc(100% - 210px);
+  min-width: 0;
+
+  margin-left: 210px;
+
+  height: 100vh;
+
+  padding: 30px 38px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.topbar {
+  margin-bottom: 32px;
+}
+
+.topbar h1 {
+  margin: 0 0 8px;
+
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.topbar p {
+  margin: 0;
+
+  color: var(--muted);
+  font-size: 14px;
+}
+
+h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* =========================
+   Timer Page Layout
+   ========================= */
+
+.timer-layout {
+  display: grid;
+  grid-template-columns: 380px minmax(0, 1fr);
+  align-items: start;
+  gap: 32px;
+}
+
+.timer-create-column,
+.timer-result-column {
+  min-width: 0;
+}
+
+.timer-create-column {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* 왼쪽 패널의 기존 margin과 충돌하지 않도록 */
+.timer-create-column .add-panel {
+  margin-bottom: 0;
+}
+
+/* 오른쪽도 위에서 아래로 배치 */
+.timer-result-column {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+
+/* =========================================================
+   Common Panel
+   ========================================================= */
+
+.add-panel,
+.timer-card,
+.timer-group,
+.stopwatch-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+
+/* =========================================================
+   New Timer Panel
+   ========================================================= */
+
+.add-panel {
+  padding: 28px;
+
+  margin-bottom: 36px;
+}
+
+.add-panel > h2 {
+  margin-bottom: 28px;
+
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* 전체 타이머 추가 영역 */
+
+.timer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+/* 각 설정 영역 */
+
+.timer-form > * {
+  width: 100%;
+}
+
+
+/* =========================================================
+   Timer Name
+   ========================================================= */
+
+.timer-name-input {
+  width: 100%;
+  height: 46px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  outline: none;
+
+  background: var(--bg);
+  color: var(--text);
+
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.timer-name-input::placeholder {
+  color: var(--muted);
+}
+
+.timer-name-input:focus {
+  border-color: var(--accent);
+
+  box-shadow:
+    0 0 0 3px
+    color-mix(
+      in srgb,
+      var(--accent) 15%,
+      transparent
+    );
+}
+
+
+/* =========================================================
+   Time Setting
+   ========================================================= */
+
+.time-inputs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  margin-top: 4px;
+}
+
+.time-input {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-adjust {
+  width: 38px;
+  height: 30px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  background: var(--panel-hover);
+  color: var(--text);
+
+  font-size: 18px;
+  line-height: 1;
+
+  transition: background 0.15s;
+}
+
+.time-adjust:hover {
+  background: var(--border);
+}
+
+
+/* 실제 시간 입력 input */
+.time-value {
+  width: 78px;
+  height: 48px;
+
+  padding: 0 5px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  outline: none;
+
+  background: var(--bg);
+  color: var(--text);
+
+  text-align: center;
+
+  font-size: 25px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+
+  /* number input 기본 화살표 제거 */
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.time-value:hover {
+  border-color: #3a4050;
+}
+
+.time-value:focus {
+  border-color: var(--accent);
+
+  background: var(--panel);
+
+  box-shadow:
+    0 0 0 3px
+    color-mix(
+      in srgb,
+      var(--accent) 15%,
+      transparent
+    );
+}
+
+/* Chrome / Edge / Electron number input 화살표 제거 */
+.time-value::-webkit-inner-spin-button,
+.time-value::-webkit-outer-spin-button {
+  margin: 0;
+
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.time-separator {
+  margin-top: -18px;
+
+  color: var(--muted);
+
+  font-size: 25px;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   Selected Time
+   ========================================================= */
+
+.selected-time {
+  margin-top: 2px;
+
+  padding: 14px 20px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  background: var(--bg);
+
+  color: var(--text);
+
+  text-align: center;
+
+  font-size: 25px;
+  font-weight: 650;
+
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+}
+
+
+/* =========================================================
+   Group Select
+   ========================================================= */
+
+.timer-form select {
+  width: 100%;
+  height: 46px;
+
+  padding: 0 10px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  outline: none;
+
+  background: var(--bg);
+  color: var(--text);
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.timer-form select:hover {
+  border-color: #3a4050;
+}
+
+.timer-form select:focus {
+  border-color: var(--accent);
+
+  box-shadow:
+    0 0 0 3px
+    color-mix(
+      in srgb,
+      var(--accent) 15%,
+      transparent
+    );
+}
+
+
+/* =========================================================
+   Add Timer Button
+   ========================================================= */
+
+.add-timer-button {
+  align-self: flex-end;
+
+  min-width: 150px;
+  height: 44px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 0 18px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: var(--accent);
+  color: white;
+
+  font-weight: 650;
+
+  transition:
+    transform 0.15s,
+    filter 0.15s;
+}
+
+.add-timer-button:hover {
+  filter: brightness(1.08);
+}
+
+.add-timer-button:active {
+  transform: translateY(1px);
+}
+
+
+/* =========================================================
+   Primary Button
+   ========================================================= */
+
+.primary {
+  background: var(--accent) !important;
+  color: white !important;
+
+  border-color: transparent !important;
+}
+
+button.primary,
+.timer-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 11px 15px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  background: var(--panel-hover);
+  color: var(--text);
+}
+
+
+/* =========================================================
+   Section Heading
+   ========================================================= */
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-bottom: 18px;
+}
+
+.section-heading span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   Timer Grid
+   ========================================================= */
+
+.timer-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fill, minmax(250px, 1fr));
+
+  gap: 18px;
+}
+
+
+/* =========================================================
+   Timer Card
+   ========================================================= */
+
+.timer-card {
+  padding: 20px;
+}
+
+.timer-card.completed {
+  border-color: #ff6b6b;
+  background: color-mix(
+    in srgb,
+    #ff6b6b 8%,
+    var(--panel)
+  );
+
+  box-shadow:
+    0 0 0 1px
+    color-mix(
+      in srgb,
+      #ff6b6b 25%,
+      transparent
+    );
+}
+
+.timer-completed-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 4px 8px;
+
+  border-radius: 999px;
+
+  background: #ff6b6b;
+  color: white;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  animation: completedBadgePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes completedBadgePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.timer-card.completed .timer-name {
+  color: #ff6b6b;
+}
+
+.timer-card.completed .timer-time {
+  color: #ff6b6b;
+  font-weight: 750;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+.timer-name {
+  min-width: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-weight: 600;
+}
+
+.icon-button {
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  padding: 8px;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: transparent;
+  color: var(--muted);
+}
+
+.icon-button:hover {
+  background: var(--panel-hover);
+  color: var(--text);
+}
+
+.timer-display {
+  margin: 28px 0 20px;
+
+  font-size: 38px;
+  font-weight: 650;
+
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -1px;
+}
+
+.progress {
+  height: 5px;
+
+  overflow: hidden;
+
+  border-radius: 99px;
+
+  background: var(--border);
+}
+
+.progress div {
+  height: 100%;
+
+  background: var(--accent);
+
+  transition: width 0.2s linear;
+}
+
+.timer-status {
+  margin: 12px 0 18px;
+
+  color: var(--muted);
+
+  font-size: 13px;
+}
+
+.timer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.timer-actions button {
+  flex: 1;
+}
+
+
+/* =========================================================
+   Empty Timer
+   ========================================================= */
+
+.empty {
+  padding: 80px 20px;
+
+  color: var(--muted);
+
+  text-align: center;
+}
+
+.empty h3 {
+  margin-bottom: 8px;
+
+  color: var(--text);
+}
+
+.empty p {
+  margin: 0;
+
+  color: var(--muted);
+}
+
+
+/* =========================================================
+   Timer Group
+   ========================================================= */
+
+.timer-group {
+  margin-bottom: 28px;
+  padding: 20px;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+
+  gap: 9px;
+}
+
+.group-title svg {
+  flex-shrink: 0;
+
+  color: var(--accent);
+}
+
+.group-title h2 {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-title span {
+  flex-shrink: 0;
+
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.group-actions {
+  display: flex;
+  align-items: center;
+
+  flex-shrink: 0;
+
+  gap: 7px;
+}
+
+.group-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 8px 11px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  background: var(--panel-hover);
+  color: var(--text);
+}
+
+.group-actions button:hover {
+  background: var(--border);
+}
+
+.group-actions .primary:hover {
+  background: var(--accent) !important;
+}
+
+.timer-group .timer-card {
+  background: var(--bg);
+}
+
+.group-empty {
+  min-height: 140px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--muted);
+
+  text-align: center;
+}
+
+.group-empty svg {
+  margin-bottom: 10px;
+}
+
+.group-empty small {
+  margin-top: 5px;
+
+  color: var(--muted);
+}
+
+/* =========================
+   Timer Group Create
+   ========================= */
+
+.group-panel {
+  margin-bottom: 36px;
+}
+
+.group-create-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.group-create-header h2 {
+  margin: 0 0 7px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.group-create-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.group-create-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.group-create-form > input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  outline: none;
+
+  background: var(--bg);
+  color: var(--text);
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.group-create-form > input::placeholder {
+  color: var(--muted);
+}
+
+.group-create-form > input:hover {
+  border-color: #3a4050;
+}
+
+.group-create-form > input:focus {
+  border-color: var(--accent);
+  background: var(--panel);
+
+  box-shadow:
+    0 0 0 3px
+    color-mix(
+      in srgb,
+      var(--accent) 15%,
+      transparent
+    );
+}
+
+.group-create-form > button {
+  flex-shrink: 0;
+
+  height: 44px;
+  padding: 0 16px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border-radius: 10px;
+}
+
+/* =========================================================
+   Stopwatch
+   ========================================================= */
+
+.stopwatch-panel {
+  max-width: 700px;
+
+  margin: 0 auto;
+  padding: 48px 24px;
+
+  text-align: center;
+}
+
+.stopwatch-time {
+  margin-bottom: 32px;
+
+  font-size: clamp(44px, 7vw, 76px);
+  font-weight: 650;
+
+  font-variant-numeric: tabular-nums;
+}
+
+.stopwatch-time small {
+  color: var(--muted);
+  font-size: 0.45em;
+}
+
+.centered {
+  justify-content: center;
+}
+
+.laps {
+  max-width: 400px;
+
+  margin: 30px auto 0;
+}
+
+.lap-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 14px 8px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.sound-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sound-setting > label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sound-setting select {
+  width: 100%;
+  height: 46px;
+
+  padding: 0 10px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  outline: none;
+
+  background: var(--bg);
+  color: var(--text);
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.sound-setting select:hover {
+  border-color: #3a4050;
+}
+
+.sound-setting select:focus {
+  border-color: var(--accent);
+
+  box-shadow:
+    0 0 0 3px
+    color-mix(
+      in srgb,
+      var(--accent) 15%,
+      transparent
+    );
+}
+
+.custom-sound {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.file-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 38px;
+  padding: 0 13px;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  background: var(--panel-hover);
+  color: var(--text);
+
+  font-size: 13px;
+  cursor: pointer;
+
+  transition: background 0.15s;
+}
+
+.file-button:hover {
+  background: var(--border);
+}
+
+.file-button input {
+  display: none;
+}
+
+.sound-selected {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   Mobile
+   ========================================================= */
+
+@media (max-width: 700px) {
+    .group-create-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .group-create-form > input {
+    width: 100%;
+  }
+
+  .group-create-form > button {
+    width: 100%;
+  }
+
+  .timer-layout {
+    display: block;
+  }
+
+  .timer-create-column {
+    display: block;
+  }
+
+  .timer-list-column {
+    width: 100%;
+  }
+
+  .timer-create-column .add-panel {
+    margin-bottom: 28px;
+  }
+
+  /* Sidebar */
+
+  .sidebar {
+    width: 72px;
+
+    padding: 20px 8px;
+  }
+
+  .brand {
+    justify-content: center;
+
+    padding: 0 0 24px;
+  }
+
+  .brand span {
+    display: none;
+  }
+
+  .nav {
+    justify-content: center;
+
+    padding: 14px 4px;
+
+    font-size: 0;
+  }
+
+  /* Content */
+
+  .content {
+    width: calc(100% - 72px);
+
+    margin-left: 72px;
+
+    padding: 22px 16px;
+  }
+
+  /* Timer form */
+
+  .add-panel {
+    padding: 20px;
+  }
+
+  .timer-form {
+    gap: 22px;
+  }
+
+  .time-setting-box {
+    padding: 18px 12px;
+  }
+
+  .time-inputs {
+    gap: 5px;
+  }
+
+  .time-value input {
+    width: 64px;
+  }
+
+  .time-separator {
+    font-size: 20px;
+  }
+
+  .selected-time {
+    font-size: 21px;
+  }
+
+  .add-timer-button {
+    width: 100%;
+  }
+
+  /* Group */
+
+  .group-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .group-actions {
+    width: 100%;
+  }
+
+  .group-actions button {
+    flex: 1;
+  }
+
+  /* Timer grid */
+
+  .timer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

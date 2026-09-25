@@ -1,5 +1,1 @@
-interface Window {
-    desktop: {
-        timerCompleted: () => void;
-    };
-}
+export {};

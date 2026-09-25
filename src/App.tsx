@@ -16,6 +16,7 @@ import {
 import { useTimerStore } from "./store/timerStore";
 import "./index.css";
 import type { TimerItem, TimerSound } from "./features/timer/types";
+import type { TimerGroup } from "./store/timerStore";
 import { StopwatchPage } from "./components/StopwatchPage";
 import TimerCard from "./components/TimerCard";
 import TimeInput from "./components/TimerInput";
@@ -39,12 +40,35 @@ export default function App() {
 
   const timers = useTimerStore((s) => s.timers);
   const groups = useTimerStore((s) => s.groups);
+  const persistenceReady = useRef(false);
+  const persistenceTimeout = useRef<number | null>(null);
 
   const addTimer = useTimerStore((s) => s.addTimer);
   const startTimer = useTimerStore((s) => s.startTimer);
   const pauseTimer = useTimerStore((s) => s.pauseTimer);
   const resetTimer = useTimerStore((s) => s.resetTimer);
   const removeTimer = useTimerStore((s) => s.removeTimer);
+  const editTimer = useTimerStore((s) => s.editTimer);
+  const moveTimer = useTimerStore((s) => s.moveTimer);
+  const draggedTimerId = useRef<string | null>(null);
+
+  function handleTimerDragStart(timerId: string) {
+    draggedTimerId.current = timerId;
+  }
+
+  function handleTimerDragOver(event: React.DragEvent<HTMLElement>) {
+    event.preventDefault();
+  }
+
+  function handleTimerDrop(targetId: string) {
+    const sourceId = draggedTimerId.current;
+
+    if (sourceId && sourceId !== targetId) {
+      moveTimer(sourceId, targetId);
+    }
+
+    draggedTimerId.current = null;
+  }
 
   const addGroup = useTimerStore((s) => s.addGroup);
   const removeGroup = useTimerStore((s) => s.removeGroup);
@@ -54,6 +78,7 @@ export default function App() {
 
   const syncTimers = useTimerStore((s) => s.syncTimers);
   const [alarmVolume, setAlarmVolume] = useState(80);
+  const [alwaysOnTop, setAlwaysOnTop] = useState(true);
 
   const [sound, setSound] =
   useState<TimerSound>("bell");
@@ -69,6 +94,51 @@ export default function App() {
   const alarmTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
+    const loadSettings = async () => {
+      const settings = await window.desktop.getSettings() as {
+        theme: "dark" | "light";
+        alwaysOnTop: boolean;
+        alarmVolume: number;
+        timers?: TimerItem[];
+        groups?: TimerGroup[];
+      };
+
+      settings.theme && setTheme(settings.theme);
+      settings.alwaysOnTop !== undefined && setAlwaysOnTop(settings.alwaysOnTop);
+      settings.alarmVolume !== undefined && setAlarmVolume(settings.alarmVolume);
+
+      useTimerStore.setState({
+        timers: settings.timers ?? [],
+        groups: settings.groups ?? [],
+      });
+      persistenceReady.current = true;
+    };
+
+    loadSettings();
+  }, []);
+
+  useEffect(() => {
+    if (!persistenceReady.current) return;
+    if (persistenceTimeout.current !== null) return;
+
+    persistenceTimeout.current = window.setTimeout(() => {
+      persistenceTimeout.current = null;
+      const state = useTimerStore.getState();
+
+      void window.desktop.saveSettings({
+        timers: state.timers,
+        groups: state.groups,
+      });
+    }, 300);
+  }, [groups, timers]);
+
+  useEffect(() => () => {
+    if (persistenceTimeout.current !== null) {
+      window.clearTimeout(persistenceTimeout.current);
+    }
+  }, []);
+
+  useEffect(() => {
     timers.forEach((timer) => {
       const previous =
         previousTimerStatus.current[timer.id];
@@ -77,7 +147,8 @@ export default function App() {
           timer.status === "completed" &&
           previous !== "completed"
         ) {
-          window.desktop.timerCompleted();
+          window.desktop.timerCompleted(alwaysOnTop);
+
           playTimerSound(
             alarmVolume,
             alarmAudioRef,
@@ -91,7 +162,7 @@ export default function App() {
       previousTimerStatus.current[timer.id] =
         timer.status;
     });
-  }, [timers]);
+  }, [alwaysOnTop, alarmVolume, timers]);
 
   useEffect(() => {
     const interval = window.setInterval(syncTimers, 200);
@@ -165,7 +236,7 @@ export default function App() {
     <main className={`app ${theme}`}>
       <aside className="sidebar">
         <div className="brand">
-          <img src="/public/icon.ico" alt="Icon" />
+          <img src="./icon.ico" alt="Icon" />
           <h1 className="brand-title">
             <span className="brand-timer">Timer</span>
             <span className="brand-stamp">Stamp</span>
@@ -188,6 +259,25 @@ export default function App() {
           스톱워치
         </button>
 
+        <div className="sidebar-setting">
+          <label className="sidebar-check">
+            <input
+              type="checkbox"
+              checked={alwaysOnTop}
+              onChange={async (e) => {
+                const enabled = e.target.checked;
+
+                setAlwaysOnTop(enabled);
+
+                await window.desktop.saveSettings({
+                  alwaysOnTop: enabled,
+                });
+              }}
+            />
+            <span>항상 위에 표시</span>
+          </label>
+        </div>
+
         <div className="sidebar-volume">
           <div className="sidebar-volume-header">
             <Volume2 size={17} />
@@ -200,18 +290,26 @@ export default function App() {
             min="0"
             max="100"
             value={alarmVolume}
-            onChange={(e) =>
+            onChange={async (e) => {
               setAlarmVolume(Number(e.target.value))
-            }
+              
+              await window.desktop.saveSettings({
+                alarmVolume: Number(e.target.value),
+              });
+            }}
           />
         </div>
 
         <div className="">
           <button
             className="nav"
-            onClick={() =>
+            onClick={async () => {
               setTheme(theme === "dark" ? "light" : "dark")
-            }
+
+              await window.desktop.saveSettings({
+                theme: theme === "dark" ? "light" : "dark",
+              });
+            }}
           >
             {theme === "dark" ? (
               <Sun size={18} />
@@ -493,7 +591,14 @@ export default function App() {
                           pauseTimer={pauseTimer}
                           resetTimer={resetTimer}
                           removeTimer={removeTimer}
+                          alarmAudioRef={alarmAudioRef}
+                          alarmContextRef={alarmContextRef}
+                          alarmTimerRef={alarmTimerRef}
                           stopTimerSound={stopTimerSound}
+                          onDragStart={handleTimerDragStart}
+                          onDragOver={handleTimerDragOver}
+                          onDrop={handleTimerDrop}
+                          editTimer={editTimer}
                         />
                       ))}
                     </div>
@@ -548,7 +653,14 @@ export default function App() {
                         pauseTimer={pauseTimer}
                         resetTimer={resetTimer}
                         removeTimer={removeTimer}
+                        alarmAudioRef={alarmAudioRef}
+                        alarmContextRef={alarmContextRef}
+                        alarmTimerRef={alarmTimerRef}
                         stopTimerSound={stopTimerSound}
+                        onDragStart={handleTimerDragStart}
+                        onDragOver={handleTimerDragOver}
+                        onDrop={handleTimerDrop}
+                        editTimer={editTimer}
                       />
                     ))}
                 </div>

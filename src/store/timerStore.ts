@@ -15,6 +15,8 @@ interface TimerStore {
   pauseTimer: (id: string) => void;
   resetTimer: (id: string) => void;
   removeTimer: (id: string) => void;
+  editTimer: (id: string, seconds: number, sound: TimerSound, customSound?: string) => void;
+  moveTimer: (timerId: string, targetId: string) => void;
 
   addGroup: (name: string) => void;
   removeGroup: (groupId: string) => void;
@@ -120,6 +122,52 @@ export const useTimerStore = create<TimerStore>((set) => ({
         (timer) => timer.id !== id
       )
     }));
+  },
+
+  editTimer: (id, seconds, sound, customSound) => {
+    const durationMs = Math.max(1, seconds) * 1000;
+
+    set((state) => ({
+      timers: state.timers.map((timer) =>
+        timer.id === id
+          ? {
+              ...timer,
+              durationMs,
+              remainingMs: durationMs,
+              status: "idle",
+              endAt: null,
+              sound,
+              customSound,
+            }
+          : timer
+      ),
+    }));
+  },
+
+  moveTimer: (timerId, targetId) => {
+    set((state) => {
+      const sourceIndex = state.timers.findIndex(
+        (timer) => timer.id === timerId
+      );
+      const targetIndex = state.timers.findIndex(
+        (timer) => timer.id === targetId
+      );
+
+      if (
+        sourceIndex === -1 ||
+        targetIndex === -1 ||
+        state.timers[sourceIndex].groupId !==
+          state.timers[targetIndex].groupId
+      ) {
+        return state;
+      }
+
+      const timers = [...state.timers];
+      const [movedTimer] = timers.splice(sourceIndex, 1);
+      timers.splice(targetIndex, 0, movedTimer);
+
+      return { timers };
+    });
   },
 
   // -------------------------
@@ -250,8 +298,9 @@ export const useTimerStore = create<TimerStore>((set) => ({
   syncTimers: () => {
     const now = Date.now();
 
-    set((state) => ({
-      timers: state.timers.map((timer) => {
+    set((state) => {
+      let changed = false;
+      const timers: TimerItem[] = state.timers.map((timer): TimerItem => {
         if (
           timer.status !== "running" ||
           timer.endAt === null
@@ -265,6 +314,7 @@ export const useTimerStore = create<TimerStore>((set) => ({
         );
 
         if (remainingMs === 0) {
+          changed = true;
 
           return {
             ...timer,
@@ -274,11 +324,17 @@ export const useTimerStore = create<TimerStore>((set) => ({
           };
         }
 
+        if (remainingMs !== timer.remainingMs) {
+          changed = true;
+        }
+
         return {
           ...timer,
           remainingMs
         };
-      })
-    }));
+      });
+
+      return changed ? { timers } : state;
+    });
   }
 }));

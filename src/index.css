@@ -193,6 +193,23 @@ button:disabled {
   text-shadow: none;
 }
 
+.app.light .brand-timer {
+  color: #25283a;
+  text-shadow: none;
+}
+
+.app.light .brand-stamp {
+  background: linear-gradient(
+    135deg,
+    #6658df 0%,
+    #8058d9 45%,
+    #a85bd9 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .nav {
   width: 100%;
 
@@ -227,6 +244,44 @@ button:disabled {
 
 .sidebar-bottom {
   margin-top: auto;
+}
+
+.sidebar-setting {
+  margin-top: 14px;
+  padding: 12px 10px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  background: var(--panel);
+}
+
+.sidebar-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+.sidebar-check input {
+  width: 16px;
+  height: 16px;
+
+  margin: 0;
+
+  accent-color: var(--accent);
+
+  cursor: pointer;
+}
+
+.sidebar-check:hover {
+  color: var(--text);
 }
 
 .sidebar-volume {
@@ -721,6 +776,49 @@ button.primary,
 
 .timer-card {
   padding: 20px;
+  cursor: grab;
+}
+
+.timer-card:active {
+  cursor: grabbing;
+}
+
+.timer-card button,
+.timer-card input,
+.timer-card select {
+  cursor: auto;
+}
+
+.timer-edit-form {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-hover);
+}
+
+.timer-edit-form .time-inputs {
+  gap: 6px;
+  margin-top: 0;
+}
+
+.timer-edit-form .time-value {
+  width: 44px;
+}
+
+.timer-edit-form select {
+  width: 100%;
+}
+
+.timer-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.timer-edit-actions button {
+  flex: 1;
 }
 
 .timer-card.completed {
@@ -781,13 +879,12 @@ button.primary,
 .card-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
 
   gap: 12px;
 }
 
 .timer-name {
-  min-width: 0;
+  width: 100%;
 
   overflow: hidden;
   text-overflow: ellipsis;

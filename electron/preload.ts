@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld("desktop", {
   notify: (title: string, body: string) =>
     ipcRenderer.invoke("notification:show", title, body),
 
-  timerCompleted: () => {
-    ipcRenderer.send("timer-completed");
+  timerCompleted: (alwaysOnTop: boolean) => {
+    ipcRenderer.send("timer-completed", alwaysOnTop);
   },
 });

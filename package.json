@@ -1,7 +1,7 @@
 {
   "name": "Timerstamp",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.1.0",
   "type": "module",
   "main": "dist-electron/main.cjs",
   "scripts": {
@@ -26,6 +26,14 @@
     "win": {
       "target": "nsis",
       "icon": "public/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "public/icon.ico",
+      "uninstallerIcon": "public/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": false
     }
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-# 🚀 custom-timer-app
+# 🚀 Timerstamp
 
 > A Desktop app supports features such as a timer and stopwatch, as well as simultaneous starting via timer groups.
 

@@ -15,8 +15,9 @@ async function createWindow() {
     height: 760,
     minWidth: 800,
     minHeight: 600,
-    title: "Custom-timer-app",
+    title: "Timerstamp",
     backgroundColor: "#111318",
+    icon: join(__dirname, "../public/icon.ico"),
     webPreferences: {
       preload: join(__dirname, "preload.cjs"),
       contextIsolation: true,
@@ -32,6 +33,8 @@ async function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, "../dist/index.html"));
   }
+
+  mainWindow.webContents.openDevTools({ mode: "detach" });
 
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -73,14 +76,14 @@ ipcMain.on("timer-completed", () => {
     mainWindow.restore();
   }
 
+  // 항상 위 옵션을 잠깐 활성화해서 확실하게 앞으로 가져오기
+  mainWindow.setAlwaysOnTop(true, "screen-saver");
+
   // 다른 창 뒤에 있다면 앞으로 가져오기
   mainWindow.show();
 
   // 포커스
-  mainWindow.focus();
-
-  // 항상 위 옵션을 잠깐 활성화해서 확실하게 앞으로 가져오기
-  mainWindow.setAlwaysOnTop(true);
+  // mainWindow.focus();
 
   setTimeout(() => {
     if (mainWindow && !mainWindow.isDestroyed()) {

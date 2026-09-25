@@ -16,23 +16,10 @@ import {
 import { useTimerStore } from "./store/timerStore";
 import "./index.css";
 import type { TimerItem, TimerSound } from "./features/timer/types";
-
-function formatTime(ms: number) {
-  const total = Math.ceil(ms / 1000);
-  const hours = Math.floor(total / 3600);
-  const minutes = Math.floor((total % 3600) / 60);
-  const seconds = total % 60;
-
-  return hours > 0
-    ? `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
-        2,
-        "0"
-      )}:${String(seconds).padStart(2, "0")}`
-    : `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
-        2,
-        "0"
-      )}`;
-}
+import { StopwatchPage } from "./components/StopwatchPage";
+import TimerCard from "./components/TimerCard";
+import TimeInput from "./components/TimerInput";
+import { playTimerSound, stopTimerSound } from "./features/function/PlaySound";
 
 export default function App() {
   const [page, setPage] = useState<"timer" | "stopwatch">("timer");
@@ -77,6 +64,10 @@ export default function App() {
   const previousTimerStatus =
     useRef<Record<string, TimerItem["status"]>>({});
 
+  const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
+  const alarmContextRef = useRef<AudioContext | null>(null);
+  const alarmTimerRef = useRef<number | null>(null);
+
   useEffect(() => {
     timers.forEach((timer) => {
       const previous =
@@ -88,6 +79,10 @@ export default function App() {
         ) {
           window.desktop.timerCompleted();
           playTimerSound(
+            alarmVolume,
+            alarmAudioRef,
+            alarmContextRef,
+            alarmTimerRef,
             timer.sound,
             timer.customSound
           );
@@ -166,183 +161,15 @@ export default function App() {
     reader.readAsDataURL(file);
   };
 
-  const alarmAudioRef = useRef<HTMLAudioElement | null>(null);
-  const alarmContextRef = useRef<AudioContext | null>(null);
-  const alarmTimerRef = useRef<number | null>(null);
-
-  const stopTimerSound = () => {
-    // 사용자 음원 중지
-    if (alarmAudioRef.current) {
-      alarmAudioRef.current.pause();
-      alarmAudioRef.current.currentTime = 0;
-      alarmAudioRef.current = null;
-    }
-
-    // 기본 알림음 중지
-    if (alarmContextRef.current) {
-      alarmContextRef.current.close();
-      alarmContextRef.current = null;
-    }
-
-    // 반복 타이머 제거
-    if (alarmTimerRef.current !== null) {
-      window.clearTimeout(alarmTimerRef.current);
-      alarmTimerRef.current = null;
-    }
-  };
-
-  const playTimerSound = (
-    sound: TimerSound,
-    customSound?: string
-  ) => {
-    stopTimerSound();
-
-    // =========================
-    // 사용자 음원
-    // =========================
-    if (sound === "custom" && customSound) {
-      const audio = new Audio(customSound);
-
-      audio.volume = alarmVolume / 100;
-      audio.loop = true;
-
-      alarmAudioRef.current = audio;
-
-      audio.play().catch((error) => {
-        console.error(
-          "사용자 알림음 재생 실패:",
-          error
-        );
-      });
-
-      alarmTimerRef.current = window.setTimeout(() => {
-        stopTimerSound();
-      }, 30_000);
-
-      return;
-    }
-
-    // =========================
-    // 기본 알림음
-    // =========================
-    const AudioContext =
-      window.AudioContext ||
-      (
-        window as typeof window & {
-          webkitAudioContext?: typeof window.AudioContext;
-        }
-      ).webkitAudioContext;
-
-    if (!AudioContext) {
-      return;
-    }
-
-    const context = new AudioContext();
-
-    alarmContextRef.current = context;
-
-    const playTone = (
-      frequency: number,
-      duration: number,
-      startTime: number
-    ) => {
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-
-      oscillator.frequency.value = frequency;
-      oscillator.type = "sine";
-
-      gain.gain.setValueAtTime(
-        0,
-        context.currentTime + startTime
-      );
-
-      gain.gain.linearRampToValueAtTime(
-        0.25 * (alarmVolume / 100),
-        context.currentTime +
-          startTime +
-          0.01
-      );
-
-      gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        context.currentTime +
-          startTime +
-          duration
-      );
-
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-
-      oscillator.start(
-        context.currentTime + startTime
-      );
-
-      oscillator.stop(
-        context.currentTime +
-          startTime +
-          duration
-      );
-    };
-
-    const playPattern = () => {
-      if (!alarmContextRef.current) {
-        return;
-      }
-
-      if (sound === "bell") {
-        playTone(880, 0.8, 0);
-        playTone(1320, 0.8, 0.08);
-        playTone(1760, 1.0, 0.16);
-      }
-
-      if (sound === "beep") {
-        playTone(880, 0.25, 0);
-        playTone(880, 0.25, 0.35);
-        playTone(880, 0.25, 0.7);
-      }
-
-      if (sound === "digital") {
-        playTone(1200, 0.12, 0);
-        playTone(800, 0.12, 0.18);
-        playTone(1200, 0.12, 0.36);
-        playTone(800, 0.25, 0.54);
-      }
-    };
-
-    playPattern();
-
-    // 약 1.5초마다 알림음 반복
-    const repeat = () => {
-      if (!alarmContextRef.current) {
-        return;
-      }
-
-      playPattern();
-
-      alarmTimerRef.current = window.setTimeout(
-        repeat,
-        1500
-      );
-    };
-
-    alarmTimerRef.current = window.setTimeout(
-      repeat,
-      1500
-    );
-
-    // 최대 30초 후 자동 종료
-    window.setTimeout(() => {
-      stopTimerSound();
-    }, 30_000);
-  };
-
   return (
     <main className={`app ${theme}`}>
       <aside className="sidebar">
         <div className="brand">
-          <TimerIcon size={25} />
-          <span>TimeFlow</span>
+          <img src="/public/icon.ico" alt="Icon" />
+          <h1 className="brand-title">
+            <span className="brand-timer">Timer</span>
+            <span className="brand-stamp">Stamp</span>
+          </h1>
         </div>
 
         <button
@@ -634,7 +461,7 @@ export default function App() {
                         disabled={!hasTimer}
                         onClick={() => {
                             resetGroup(group.id);
-                            stopTimerSound();
+                            stopTimerSound(alarmAudioRef, alarmContextRef, alarmTimerRef);
                           }
                         }
                       >
@@ -749,323 +576,5 @@ export default function App() {
         )}
       </section>
     </main>
-  );
-}
-
-/* =========================
-   타이머 카드
-========================= */
-
-function TimerCard({
-  timer,
-  startTimer,
-  pauseTimer,
-  resetTimer,
-  removeTimer,
-  stopTimerSound,
-}: {
-  timer: any
-  startTimer: Function
-  pauseTimer: Function
-  resetTimer: Function
-  removeTimer: Function
-  stopTimerSound: Function
-}) {
-  const progress =
-    1 -
-    timer.remainingMs /
-      timer.durationMs;
-      
-      return (
-        <article className={`timer-card ${
-          timer.status === "completed"
-          ? "completed"
-          : ""
-        }`}>
-      <div className="card-top">
-        <span className="timer-name">
-          {timer.name}
-        </span>
-
-        {timer.status === "completed" && (
-          <span className="timer-completed-badge">
-            종료됨
-          </span>
-        )}
-
-        <button
-          className="icon-button"
-          onClick={() => {
-              removeTimer(timer.id)
-              stopTimerSound();
-            }
-          }
-          aria-label="타이머 삭제"
-        >
-          <Trash2 size={17} />
-        </button>
-      </div>
-
-      <div className="timer-display">
-        {formatTime(timer.remainingMs)}
-      </div>
-
-      <div className="progress">
-        <div
-          style={{
-            width: `${Math.min(
-              100,
-              progress * 100
-            )}%`,
-          }}
-        />
-      </div>
-
-      <div className="timer-status">
-        {timer.status === "running"
-          ? "실행 중"
-          : timer.status === "paused"
-          ? "일시정지"
-          : timer.status === "completed"
-          ? "완료"
-          : "대기 중"}
-      </div>
-
-
-      <div className="timer-actions">
-        {timer.status === "running" ? (
-          <button
-            onClick={() =>
-              pauseTimer(timer.id)
-            }
-          >
-            <Pause size={17} />
-            일시정지
-          </button>
-        ) : (
-          <button
-            className="primary"
-            disabled={
-              timer.status === "completed"
-            }
-            onClick={() =>
-              startTimer(timer.id)
-            }
-          >
-            <Play size={17} />
-
-            {timer.status === "paused"
-              ? "재개"
-              : "시작"}
-          </button>
-        )}
-
-        <button
-          onClick={() => {
-              resetTimer(timer.id);
-              stopTimerSound();
-            } 
-          }
-        >
-          <RotateCcw size={17} />
-          종료
-        </button>
-      </div>
-    </article>
-  );
-}
-
-/* =========================
-   시간 입력
-========================= */
-
-type TimeInputProps = {
-  value: number;
-  max: number;
-  onChange: (value: number) => void;
-};
-
-function TimeInput({
-  value,
-  max,
-  onChange,
-}: TimeInputProps) {
-  function decrease() {
-    onChange(Math.max(0, value - 1));
-  }
-
-  function increase() {
-    onChange(Math.min(max, value + 1));
-  }
-
-  return (
-    <div className="time-input">
-      <button
-        type="button"
-        className="time-adjust"
-        onClick={increase}
-      >
-        +
-      </button>
-
-      <input
-        className="time-value"
-        type="number"
-        min="0"
-        max={max}
-        value={String(value).padStart(2, "0")}
-        onChange={(e) => {
-          const next = Number(e.target.value);
-
-          if (!Number.isFinite(next)) {
-            onChange(0);
-            return;
-          }
-
-          onChange(
-            Math.max(
-              0,
-              Math.min(max, next)
-            )
-          );
-        }}
-      />
-
-      <button
-        type="button"
-        className="time-adjust"
-        onClick={decrease}
-      >
-        −
-      </button>
-    </div>
-  );
-}
-
-/* =========================
-   스톱워치
-========================= */
-
-function StopwatchPage() {
-  const [elapsed, setElapsed] =
-    useState(0);
-
-  const [running, setRunning] =
-    useState(false);
-
-  const [startedAt, setStartedAt] =
-    useState<number | null>(null);
-
-  const [laps, setLaps] =
-    useState<number[]>([]);
-
-  useEffect(() => {
-    if (
-      !running ||
-      startedAt === null
-    ) {
-      return;
-    }
-
-    const id = window.setInterval(() => {
-      setElapsed(
-        Date.now() - startedAt
-      );
-    }, 30);
-
-    return () =>
-      window.clearInterval(id);
-  }, [running, startedAt]);
-
-  function start() {
-    setStartedAt(
-      Date.now() - elapsed
-    );
-
-    setRunning(true);
-  }
-
-  function pause() {
-    setElapsed(
-      Date.now() -
-        (startedAt ?? Date.now())
-    );
-
-    setRunning(false);
-  }
-
-  function reset() {
-    setRunning(false);
-    setElapsed(0);
-    setStartedAt(null);
-    setLaps([]);
-  }
-
-  return (
-    <section className="stopwatch-panel">
-      <div className="stopwatch-time">
-        {formatTime(elapsed)}
-
-        <small>
-          .
-          {String(
-            Math.floor(
-              (elapsed % 1000) / 10
-            )
-          ).padStart(2, "0")}
-        </small>
-      </div>
-
-      <div className="timer-actions centered">
-        {running ? (
-          <button onClick={pause}>
-            <Pause size={18} />
-            일시정지
-          </button>
-        ) : (
-          <button
-            className="primary"
-            onClick={start}
-          >
-            <Play size={18} />
-            시작
-          </button>
-        )}
-
-        <button
-          disabled={!running}
-          onClick={() =>
-            setLaps((old) => [
-              ...old,
-              elapsed,
-            ])
-          }
-        >
-          랩 기록
-        </button>
-
-        <button onClick={reset}>
-          <RotateCcw size={18} />
-          초기화
-        </button>
-      </div>
-
-      <div className="laps">
-        {laps.map((lap, i) => (
-          <div
-            className="lap-row"
-            key={i}
-          >
-            <span>
-              랩 {i + 1}
-            </span>
-
-            <strong>
-              {formatTime(lap)}
-            </strong>
-          </div>
-        ))}
-      </div>
-    </section>
   );
 }

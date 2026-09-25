@@ -1,5 +1,5 @@
 {
-  "name": "custom-timer-app",
+  "name": "Timerstamp",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,8 +13,8 @@
     "preview": "vite preview"
   },
   "build": {
-    "appId": "com.custom-timer-app.desktop",
-    "productName": "Custom-timer-app",
+    "appId": "com.timerstamp.desktop",
+    "productName": "Timerstamp",
     "directories": {
       "output": "release"
     },
@@ -24,7 +24,8 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "public/icon.ico"
     }
   },
   "dependencies": {

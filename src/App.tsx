@@ -350,15 +350,6 @@ export default function App() {
                 </button>
               </>
             )}
-
-            {updateInfo.status === "error" && (
-              <>
-                <p>업데이트를 확인하지 못했습니다.</p>
-                <button onClick={() => setUpdateInfo(null)}>
-                  닫기
-                </button>
-              </>
-            )}
           </div>
         </div>
       )}

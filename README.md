@@ -4,6 +4,10 @@
 
 ---
 
+## Support
+* **Window**
+* Linux not support
+
 ## 🛠️ Tech Stack
 
 ### Language

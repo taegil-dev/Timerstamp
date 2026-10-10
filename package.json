@@ -34,10 +34,18 @@
       "uninstallerIcon": "public/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": false
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "taegil-dev",
+        "repo": "Timerstamp"
+      }
+    ]
   },
   "dependencies": {
     "electron-store": "^11.0.2",
+    "electron-updater": "^6.8.9",
     "lucide-react": "^1.47.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

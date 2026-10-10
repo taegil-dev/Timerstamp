@@ -10,7 +10,7 @@ export default defineConfig({
         main: resolve(__dirname, "electron/main.ts"),
         preload: resolve(__dirname, "electron/preload.ts"),
       },
-      external: ["electron", "electron-store", "node:path"],
+      external: ["electron", "electron-store", "electron-updater", "node:path"],
       output: {
         format: "cjs",
         entryFileNames: "[name].cjs",

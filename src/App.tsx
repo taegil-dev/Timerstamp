@@ -79,6 +79,7 @@ export default function App() {
   const syncTimers = useTimerStore((s) => s.syncTimers);
   const [alarmVolume, setAlarmVolume] = useState(80);
   const [alwaysOnTop, setAlwaysOnTop] = useState(true);
+  const [notification, setNotification] = useState(true);
 
   const [sound, setSound] =
   useState<TimerSound>("bell");
@@ -98,6 +99,7 @@ export default function App() {
       const settings = await window.desktop.getSettings() as {
         theme: "dark" | "light";
         alwaysOnTop: boolean;
+        notification: boolean;
         alarmVolume: number;
         timers?: TimerItem[];
         groups?: TimerGroup[];
@@ -105,6 +107,7 @@ export default function App() {
 
       settings.theme && setTheme(settings.theme);
       settings.alwaysOnTop !== undefined && setAlwaysOnTop(settings.alwaysOnTop);
+      settings.notification !== undefined && setNotification(settings.notification);
       settings.alarmVolume !== undefined && setAlarmVolume(settings.alarmVolume);
 
       useTimerStore.setState({
@@ -149,6 +152,13 @@ export default function App() {
         ) {
           window.desktop.timerCompleted(alwaysOnTop);
 
+          if(notification) {
+            window.desktop.notify(
+              "타이머 종료",
+              `${timer.name} 타이머가 종료되었습니다.`
+            );
+          }
+
           playTimerSound(
             alarmVolume,
             alarmAudioRef,
@@ -163,6 +173,14 @@ export default function App() {
         timer.status;
     });
   }, [alwaysOnTop, alarmVolume, timers]);
+
+  useEffect(() => {
+    return () => {
+      window.desktop.onNotificationClicked(() => {
+        stopTimerSound(alarmAudioRef, alarmContextRef, alarmTimerRef);
+      });
+    };
+  }, []);
 
   useEffect(() => {
     const interval = window.setInterval(syncTimers, 200);
@@ -232,8 +250,119 @@ export default function App() {
     reader.readAsDataURL(file);
   };
 
+  type UpdateInfo = {
+    status:
+      | "available"
+      | "not-available"
+      | "downloading"
+      | "downloaded"
+      | "error";
+    version?: string;
+    percent?: number;
+    message?: string;
+  };
+
+  const [updateInfo, setUpdateInfo] =
+    useState<UpdateInfo | null>(null);
+
+  useEffect(() => {
+    // 먼저 이벤트를 구독하고 업데이트 확인을 시작
+    const unsubscribe = window.desktop.onUpdateStatus(
+      (data) => {
+        const info = data as UpdateInfo;
+
+        if (info.status === "not-available") {
+          setUpdateInfo(null);
+          return;
+        }
+
+        setUpdateInfo(info);
+      }
+    );
+
+    void window.desktop.checkForUpdates();
+
+    return unsubscribe;
+  }, []);
+
   return (
     <main className={`app ${theme}`}>
+      {updateInfo && (
+        <div className="update-overlay">
+          <div className="update-dialog">
+            <h2>TimerStamp 업데이트</h2>
+
+            {updateInfo.status === "available" && (
+              <>
+                <p>
+                  새 버전 v{updateInfo.version}을
+                  사용할 수 있습니다.
+                </p>
+
+                <button
+                  onClick={() => {
+                    void window.desktop.downloadUpdate();
+                    setUpdateInfo({
+                      ...updateInfo,
+                      status: "downloading",
+                      percent: 0,
+                    });
+                  }}
+                >
+                  지금 업데이트
+                </button>
+
+                <button
+                  className="secondary"
+                  onClick={() => setUpdateInfo(null)}
+                >
+                  나중에
+                </button>
+              </>
+            )}
+
+            {updateInfo.status === "downloading" && (
+              <>
+                <p>업데이트 다운로드 중...</p>
+                <progress
+                  value={updateInfo.percent ?? 0}
+                  max={100}
+                />
+                <p>{updateInfo.percent ?? 0}%</p>
+              </>
+            )}
+
+            {updateInfo.status === "downloaded" && (
+              <>
+                <p>업데이트 다운로드가 완료되었습니다.</p>
+                <button
+                  onClick={() =>
+                    void window.desktop.installUpdate()
+                  }
+                >
+                  재시작하고 설치
+                </button>
+                <button
+                  className="secondary"
+                  onClick={() => setUpdateInfo(null)}
+                >
+                  나중에
+                </button>
+              </>
+            )}
+
+            {updateInfo.status === "error" && (
+              <>
+                <p>업데이트를 확인하지 못했습니다.</p>
+                <button onClick={() => setUpdateInfo(null)}>
+                  닫기
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      
       <aside className="sidebar">
         <div className="brand">
           <img src="./icon.ico" alt="Icon" />
@@ -275,6 +404,22 @@ export default function App() {
               }}
             />
             <span>항상 위에 표시</span>
+          </label>
+          <label className="sidebar-check">
+            <input
+              type="checkbox"
+              checked={notification}
+              onChange={async (e) => {
+                const enabled = e.target.checked;
+
+                setNotification(enabled);
+
+                await window.desktop.saveSettings({
+                  notification: enabled,
+                });
+              }}
+            />
+            <span>알림</span>
           </label>
         </div>
 

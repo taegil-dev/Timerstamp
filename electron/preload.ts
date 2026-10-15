@@ -11,7 +11,12 @@ contextBridge.exposeInMainWorld("desktop", {
     ipcRenderer.invoke("notification:show", title, body),
 
   onNotificationClicked: (callback: () => void) => {
-    ipcRenderer.on("notification:clicked", callback);
+    const listener = () => callback();
+    ipcRenderer.on("notification:clicked", listener);
+
+    return () => {
+      ipcRenderer.removeListener("notification:clicked", listener);
+    };
   },
 
   timerCompleted: (alwaysOnTop: boolean) => {

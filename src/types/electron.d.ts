@@ -7,7 +7,7 @@ declare global {
       getSettings: () => Promise<unknown>;
       saveSettings: (settings: unknown) => Promise<void>;
       notify: (title: string, body: string) => Promise<void>;
-      onNotificationClicked: (callback: () => void) => void;
+      onNotificationClicked: (callback: () => void) => () => void;
       timerCompleted: (alwaysOnTop: boolean) => void;
       checkForUpdates: () => Promise<unknown>;
       downloadUpdate: () => Promise<unknown>;

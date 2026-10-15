@@ -1,10 +1,10 @@
 import type { TimerSound } from "../timer/types";
 
-export const stopTimerSound = (
+export function stopTimerSound(
     alarmAudioRef: React.RefObject<HTMLAudioElement | null>,
     alarmContextRef: React.RefObject<AudioContext | null>,
     alarmTimerRef: React.RefObject<number | null>
-) => {
+) {
     // 사용자 음원 중지
     if (alarmAudioRef.current) {
         alarmAudioRef.current.pause();
@@ -26,6 +26,8 @@ export const stopTimerSound = (
 };
 
 export const playTimerSound = (
+    id: string,
+    resetTimer: (id: string) => void,
     alarmVolume: number,
     alarmAudioRef: React.RefObject<HTMLAudioElement | null>,
     alarmContextRef: React.RefObject<AudioContext | null>,
@@ -166,8 +168,8 @@ export const playTimerSound = (
         1500
     );
 
-    // 최대 30초 후 자동 종료
     window.setTimeout(() => {
-            stopTimerSound(alarmAudioRef, alarmContextRef, alarmTimerRef);
-    }, 30_000);
+        resetTimer(id);
+        stopTimerSound(alarmAudioRef, alarmContextRef, alarmTimerRef);
+    }, 15_000);
 };

@@ -139,6 +139,7 @@ button:disabled {
 }
 
 .update-dialog h2 {
+  justify-self: center;
   margin: 0 0 14px;
   font-size: 22px;
   font-weight: 800;
@@ -146,9 +147,20 @@ button:disabled {
 }
 
 .update-dialog p {
+  justify-self: center;
   color: var(--muted);
   font-size: 14px;
   line-height: 1.6;
+}
+
+.update-actions{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  margin-top: 20px;
 }
 
 .update-dialog button {

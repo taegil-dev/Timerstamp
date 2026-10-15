@@ -155,11 +155,14 @@ export default function App() {
           if(notification) {
             window.desktop.notify(
               "타이머 종료",
-              `${timer.name} 타이머가 종료되었습니다.`
+              `${timer.name}
+              타이머가 종료되었습니다.`
             );
           }
 
           playTimerSound(
+            timer.id,
+            resetTimer,
             alarmVolume,
             alarmAudioRef,
             alarmContextRef,
@@ -175,11 +178,12 @@ export default function App() {
   }, [alwaysOnTop, alarmVolume, timers]);
 
   useEffect(() => {
-    return () => {
+    const removeNotificationListener =
       window.desktop.onNotificationClicked(() => {
         stopTimerSound(alarmAudioRef, alarmContextRef, alarmTimerRef);
       });
-    };
+
+    return removeNotificationListener;
   }, []);
 
   useEffect(() => {
@@ -256,6 +260,7 @@ export default function App() {
       | "not-available"
       | "downloading"
       | "downloaded"
+      | "development"
       | "error";
     version?: string;
     percent?: number;
@@ -299,25 +304,27 @@ export default function App() {
                   사용할 수 있습니다.
                 </p>
 
-                <button
-                  onClick={() => {
-                    void window.desktop.downloadUpdate();
-                    setUpdateInfo({
-                      ...updateInfo,
-                      status: "downloading",
-                      percent: 0,
-                    });
-                  }}
-                >
-                  지금 업데이트
-                </button>
+                <div className="update-actions">
+                  <button
+                    onClick={() => {
+                      void window.desktop.downloadUpdate();
+                      setUpdateInfo({
+                        ...updateInfo,
+                        status: "downloading",
+                        percent: 0,
+                      });
+                    }}
+                  >
+                    지금 업데이트
+                  </button>
 
-                <button
-                  className="secondary"
-                  onClick={() => setUpdateInfo(null)}
-                >
-                  나중에
-                </button>
+                  <button
+                    className="secondary"
+                    onClick={() => setUpdateInfo(null)}
+                  >
+                    나중에
+                  </button>
+                </div>
               </>
             )}
 
@@ -335,19 +342,21 @@ export default function App() {
             {updateInfo.status === "downloaded" && (
               <>
                 <p>업데이트 다운로드가 완료되었습니다.</p>
-                <button
-                  onClick={() =>
-                    void window.desktop.installUpdate()
-                  }
-                >
-                  재시작하고 설치
-                </button>
-                <button
-                  className="secondary"
-                  onClick={() => setUpdateInfo(null)}
-                >
-                  나중에
-                </button>
+                <div className="update-actions">
+                  <button
+                    onClick={() =>
+                      void window.desktop.installUpdate()
+                    }
+                  >
+                    재시작하고 설치
+                  </button>
+                  <button
+                    className="secondary"
+                    onClick={() => setUpdateInfo(null)}
+                  >
+                    나중에
+                  </button>
+                </div>
               </>
             )}
           </div>
